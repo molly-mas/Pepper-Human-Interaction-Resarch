@@ -7,6 +7,7 @@ import qi
 import time
 import sys
 import argparse
+import os
 
 
 class HumanGreeter(object):
@@ -30,6 +31,7 @@ class HumanGreeter(object):
         self.tts = session.service("ALTextToSpeech")
         self.face_detection = session.service("ALFaceDetection")
         self.face_detection.subscribe("HumanGreeter")
+        
         self.got_face = False
 
     def on_human_tracked(self, value):
@@ -68,7 +70,7 @@ class HumanGreeter(object):
         print "Starting HumanGreeter"
         try:
             while True:
-                time.sleep(1)
+                time.sleep(10)
         except KeyboardInterrupt:
             print "Interrupted by user, stopping HumanGreeter"
             self.face_detection.unsubscribe("HumanGreeter")
