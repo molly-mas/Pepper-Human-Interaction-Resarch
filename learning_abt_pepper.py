@@ -1,6 +1,8 @@
 import qi
 import sys
 import time
+import subprocess
+import os
 
 #app = qi.Application()
 #app.start()
@@ -36,7 +38,8 @@ class Test:
         #test recorder
         self.audio_recorder = session.service("ALAudioRecorder")
 
-
+        #Figuring out Behavior Calling
+        self.behavior_manager = session.service("ALBehaviorManager")
 
         #self.got_sound = False
         #self.enterd_zone = False
@@ -86,23 +89,31 @@ class Test:
                 print "YO YO YO you are here #pepper hears"
             else:
                 self.subscriber3 = False
-                print "Sound heard in zone"
+                #print "Sound heard in zone"
                 self.pre_light()
                 self.pepper_record()
-                self.lights_up()
+                self.behavior_manager.stopBehavior('pepperrecord-6ecb0d/behavior_1')
+                self.download_file()
+                print "downloaded file # we are so up"
+                #self.lights_up()
+                sentence = self.read_file()
+                print(sentence)
+                self.tts.say(sentence)
+
+
                 self.subscriber3 = self.memory.subscriber("ALSoundLocalization/SoundsLocated")
+
                 self.subscriber3.signal.connect(self.pepper_hears)
                 #print(self.got_sound)
                 
                 #self.tts.say("I hear you! Hi my name is pepper want to have a conversation?")
-        else: 
-            print "Heard sound not in zone"
+        
 
 
         
 
     def lights_up(self):
-        self.Led.rasta(5.0)
+        self.Led.rasta(1.0)
 
     def pre_light(self):
         self.Led.rasta(1.0)
@@ -110,15 +121,35 @@ class Test:
 
     def pepper_record(self):
         ''' '''
-        channels = (1,1,1,1)
+        #channels = (1,1,1,1)
         #Set up the call to channels here for the method
-        self.audio_recorder.startMicrophonesRecording("~/recordings/microphones/Test.wav","wav",48000, channels)
+        #self.audio_recorder.startMicrophonesRecording("~/recordings/microphones/Test.wav","wav",48000, channels)
         #time here
-        time.sleep(10)
-        self.audio_recorder.stopMicrophonesRecording()
+        #time.sleep(10)
+        #self.audio_recorder.stopMicrophonesRecording()
+        self.behavior_manager.stopBehavior('pepperrecord-6ecb0d/behavior_1')
+        self.behavior_manager.runBehavior('pepperrecord-6ecb0d/behavior_1')
+        #self.behavior_manager.stopBehavior('pepperrecord-6ecb0d/behavior_1')
+        
 
+    def download_file(self):
+        result = subprocess.call(["scp","-v","nao@192.168.3.137:~/recordings/microphones/user_audio.wav","user_audio.wav"])
 
+    def read_file(self):
+        file_path = "/home/molly_mas/WhisperStuff/response.txt"
+        while not os.path.exists(file_path):
+            pass
+        text_file = open(file_path,"r")
+        stuff_to_say = ""
+        for line in text_file:
+            line = line.strip()
+            stuff_to_say = line
+        text_file.close()
+        os.remove(file_path)
+        print "deleated the text"
+        return stuff_to_say
 
+        
 
     def run(self):
         print "Starting The test"
